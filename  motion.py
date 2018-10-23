@@ -4,10 +4,30 @@
 
 import time
 import datetime
+import os
 import picamera
 import picamera.array
+import shutil
 import subprocess
+import sys
 from fractions import Fraction
+
+# Verify that the images/temp/videos folders exist
+rootFolder = "/home/pi/Desktop/"
+
+imageFolder = rootFolder + 'images'
+tempFolder = rootFolder + 'temp'
+videoFolder = rootFolder + 'videos'
+
+if not os.path.isdir(imageFolder):
+    os.makedirs(imageFolder)
+if not os.path.isdir(videoFolder):
+    os.makedirs(videoFolder)
+
+# Clear out tempFolder
+if os.path.isdir(tempFolder):
+    shutil.rmtree(tempFolder)
+os.makedirs(tempFolder)
 
 # Logging
 verbose = True     # False= Non True=Display showMessage
@@ -36,21 +56,23 @@ def userMotionCode():
     
     # Create date timestamps for files
     timestamp  = datetime.datetime.now().strftime("%Y%m%d-%H%M%S") # method calls date/time cast string
-    timestamp_jpg  = "../images/" + timestamp + ".jpg"
-    timestamp_mp4  = "../videos/" + timestamp + ".mp4"
-
-    # print(timestamp_jpg)
-    # print(timestamp_mp4)
+    timestamp_jpg  = tempFolder + "/" + timestamp + ".jpg"
+    timestamp_mp4  = tempFolder + "/" + timestamp + ".mp4"
 
     # Capture image
     print("Capturing image...")
     subprocess.call(["raspistill", "-t", "1", "-n", "-o", timestamp_jpg])
+
+    # Move image to 'images' folder
+    os.rename(timestamp_jpg, timestamp_jpg.replace("temp", "images"))
 
     # Capture video
     print("Capturing video...")
     # subprocess.call(["raspivid ", "-t", "10000", "-o", timestamp_mp4])
     subprocess.call(["raspivid", "-t", "15000", "-n", "-o", timestamp_mp4])
 
+    # Move video to 'videos' folder
+    os.rename(timestamp_mp4, timestamp_mp4.replace("temp", "videos"))
 
     return
     
@@ -136,4 +158,3 @@ if __name__ == '__main__':
         print("  Exiting Program")
         print("+++++++++++++++++++")
         print("")
-               
